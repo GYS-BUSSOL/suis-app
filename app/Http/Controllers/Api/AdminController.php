@@ -34,31 +34,6 @@ class AdminController extends Controller
             $totalRecord = $countBuilderDistinct->get()->count();
             $totalShowData = $dataGet->count();
 
-            // $resultData = [];
-
-            // foreach ($dataGet as $arrDataParent) {
-            //     $mulData = $this->customData(explode(",", $arrDataParent->loc_app));
-            //     $arrMULData = ['loc_app' => []];
-
-            //     foreach ($mulData as $mermbcw) {
-            //         if (in_array($mermbcw['id'], explode(",", $arrDataParent->loc_app))) {
-            //             $arrMULData['loc_app'][] = [
-            //                 'id' => $mermbcw['usr_id'],
-            //             ];
-            //         }
-            //     }
-            //     $mergedData = array_merge(
-            //         json_decode(json_encode($arrDataParent), true),
-            //         $arrMULData
-            //     );
-            //     $resultData[] = $mergedData;
-            // }
-            // $dataGet = DB::table('mst_map_location as a')
-            //     ->select('a.*', 'b.cr_db_id', 'b.cr_db_name')
-            //     ->leftJoin('mst_db_codereadr as b', 'a.loc_db_codereadr', '=', 'b.cr_db_id')
-            //     ->get();
-
-
             return response()->json([
                 'status' => 200,
                 'message' => 'Successfully retrieved signature type data',
@@ -81,107 +56,108 @@ class AdminController extends Controller
         }
     }
 
-    // public function add(Request $request)
-    // {
-    //     $data = [
-    //         'st_desc' => ['required', 'string'],
-    //         'st_user' => ['required', 'array'],
-    //     ];
+    public function add(Request $request)
+    {
+        $data = [
+            'loc_app' => ['required', 'string'],
+            'loc_db_codereadr' => ['required', 'string'],
+        ];
 
-    //     $validated = $this->handleValidationException($request, $data);
-    //     if ($validated instanceof JsonResponse) {
-    //         return $validated;
-    //     }
+        $validated = $this->handleValidationException($request, $data);
+        if ($validated instanceof JsonResponse) {
+            return $validated;
+        }
 
-    //     try {
-    //         if (is_string($validated['st_user'])) {
-    //             $validated['st_user'] = json_decode($validated['st_user'], true);
-    //         }
+        try {
+            if (is_string($validated['loc_app'])) {
+                $validated['loc_app'] = json_decode($validated['loc_app'], true);
+            }
 
-    //         if (is_array($validated['st_user'])) {
-    //             $validated['st_user'] = join(", ", $validated['st_user']);
-    //         }
-    //         $this->st->create($validated);
+            if (is_string($validated['loc_db_codereadr'])) {
+                $validated['loc_db_codereadr'] = json_decode($validated['loc_db_codereadr'], true);
+            }
 
-    //         return response()->json([
-    //             'status' => 200,
-    //             'message' => 'Signature type created successfully'
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'status' => 500,
-    //             'error' => 'Server error',
-    //             'message' => 'Signature type failed to create',
-    //         ], 500);
-    //     }
-    // }
+            $this->maploc->create($validated);
 
-    // public function edit(int $id)
-    // {
-    //     try {
-    //         $signType = $this->st->firstWhere('st_id', $id);
-    //         if (empty($signType)) {
-    //             return response()->json([
-    //                 "status" => 404,
-    //                 "message" => "Signature type not found",
-    //             ], 404);
-    //         }
-    //         return response()->json([
-    //             "status" => 200,
-    //             "message" => "Successfully retrieved signature type data",
-    //             'data' => $signType
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             "status" => 500,
-    //             "message" => "Failed to retrieve signature type data",
-    //             "error" => "Server error",
-    //         ], 500);
-    //     }
-    // }
+            return response()->json([
+                'status' => 200,
+                'message' => 'Signature type created successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Server error',
+                'message' => 'Signature type failed to create',
+            ], 500);
+        }
+    }
 
-    // public function update(Request $request, int $id)
-    // {
-    //     $data = [
-    //         'st_desc' => ['required', 'string'],
-    //         'st_user' => ['required', 'array'],
-    //     ];
+    public function edit(int $id)
+    {
+        try {
+            $location = $this->maploc->firstWhere('id', $id);
+            if (empty($location)) {
+                return response()->json([
+                    "status" => 404,
+                    "message" => "Location not found",
+                ], 404);
+            }
+            return response()->json([
+                "status" => 200,
+                "message" => "Successfully retrieved Location data",
+                'data' => $location
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => 500,
+                "message" => "Failed to retrieve Location data",
+                "error" => "Server error",
+            ], 500);
+        }
+    }
 
-    //     $validated = $this->handleValidationException($request, $data);
-    //     if ($validated instanceof JsonResponse) {
-    //         return $validated;
-    //     }
+    public function update(Request $request, int $id)
+    {
+        $data = [
+            'loc_app' => ['required', 'string'],
+            'loc_db_codereadr' => ['required', 'string'],
+        ];
 
-    //     try {
-    //         $st = $this->st->firstWhere('st_id', $id);
-    //         if (empty($st)) {
-    //             return response()->json([
-    //                 "status" => 404,
-    //                 "message" => "Signature type not found",
-    //             ], 404);
-    //         }
-    //         if (is_string($validated['st_user'])) {
-    //             $validated['st_user'] = json_decode($validated['st_user'], true);
-    //         }
+        $validated = $this->handleValidationException($request, $data);
+        if ($validated instanceof JsonResponse) {
+            return $validated;
+        }
 
-    //         if (is_array($validated['st_user'])) {
-    //             $validated['st_user'] = join(", ", $validated['st_user']);
-    //         }
+        try {
+            $location = $this->maploc->firstWhere('id', $id);
+            if (empty($location)) {
+                return response()->json([
+                    "status" => 404,
+                    "message" => "Signature type not found",
+                ], 404);
+            }
+            if (is_string($validated['loc_app'])) {
+                $validated['loc_app'] = json_decode($validated['loc_app'], true);
+            }
 
-    //         if ($st->update($validated)) {
-    //             return response()->json([
-    //                 "status" => 200,
-    //                 "message" => "Successfully updated signature type data",
-    //             ], 200);
-    //         }
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             "status" => 500,
-    //             "message" => "Failed to updated signature type data",
-    //             "error" => "Server error",
-    //         ], 500);
-    //     }
-    // }
+            if (is_string($validated['loc_db_codereadr'])) {
+                $validated['loc_db_codereadr'] = json_decode($validated['loc_db_codereadr'], true);
+            }
+
+            if ($location->update($validated)) {
+                return response()->json([
+                    "status" => 200,
+                    "message" => "Successfully updated signature type data",
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => 500,
+                "message" => "Failed to updated signature type data",
+                "error" => "Server error",
+            ], 500);
+        }
+    }
 
     public function list()
     {

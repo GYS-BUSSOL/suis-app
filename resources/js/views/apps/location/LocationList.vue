@@ -1,4 +1,5 @@
 <script setup>
+import LocationAddDialog from '@/components/location/LocationAddDialog.vue';
 
 const emit = defineEmits(['updateTotalNotActive','updateTotalActive'])
 // Store
@@ -20,7 +21,7 @@ const errorMessages = ref('Internal server error')
 const successMessages = ref('Successfully')
 const errors = ref({
   loc_app: undefined,
-  cr_db_name: undefined
+  loc_db_codereadr: undefined
 })
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -30,9 +31,8 @@ const updateOptions = options => {
 // Headers
 const headers = [
   {
-    title: 'Actions',
-    key: 'actions',
-    sortable: false,
+    title: "No",
+    key: "no"
   },
   {
     title: 'Location',
@@ -41,6 +41,11 @@ const headers = [
   {
     title: 'Trigger Codereadr',
     key: 'join_first_cr_db_name',
+  },
+  {
+    title: 'Actions',
+    key: 'actions',
+    sortable: false,
   },
 ]
 
@@ -59,7 +64,6 @@ const {
 
 const location = computed(() => locationData.value.location)
 const totalLocation = computed(() => locationData.value.totalLocation)
-console.log("location: ", location)
 
 const openDialog = async ({ id = null, type }) => {
   isLocationTypeDialog.value = type
@@ -69,10 +73,6 @@ const openDialog = async ({ id = null, type }) => {
     fetchTrigger.value += 1;
 }
 
-const openDialogDelete = async (id) => {
-  IDLocation.value = id
-  isLocationDialogDeleteVisible.value = true
-}
 
 const updateSnackbarResponse = res => {
   isSnackbarResponse.value = res;
@@ -102,117 +102,83 @@ const updateErrors = err => {
   errors.value = err;
 }
 
-// const fetchAddData = async (LocationData, clearedForm) => {
-//   try {
-//       const response = await $api('/configurations/signature-type/add', {
-//         method: 'POST',
-//         body: JSON.stringify(LocationData),
-//         onResponseError({ response }) {
-//           alertErrorResponse()
-//           const responseData = response._data;
-//           const responseMessage = responseData.message;
-//           const responseErrors = responseData.errors;
-//           errors.value = responseErrors;
-//           errorMessages.value = responseMessage;
-//           throw new Error("Created data failed");
-//         },
-//       });
+const fetchAddData = async (LocationData, clearedForm) => {
+  try {
+      const response = await $api('/apps/location/add', {
+        method: 'POST',
+        body: JSON.stringify(LocationData),
+        onResponseError({ response }) {
+          alertErrorResponse()
+          const responseData = response._data;
+          const responseMessage = responseData.message;
+          const responseErrors = responseData.errors;
+          errors.value = responseErrors;
+          errorMessages.value = responseMessage;
+          throw new Error("Created data failed");
+        },
+      });
 
-//     const responseStringify = JSON.stringify(response);
-//     const responseParse = JSON.parse(responseStringify);
+    const responseStringify = JSON.stringify(response);
+    const responseParse = JSON.parse(responseStringify);
 
-//     if(responseParse?.status == 200) {
-//       clearedForm()
-//       fetchLocation()
-//       alertSuccessResponse()
-//       const responseMessage = responseParse?.message;
-//       successMessages.value = responseMessage;
-//       isLocationDialogVisible.value = false
-//     } else {
-//       alertErrorResponse()
-//       throw new Error("Created data failed");
-//     }
-//   } catch (error) {
-//     alertErrorResponse()
-//   }
-// }
+    if(responseParse?.status == 200) {
+      clearedForm()
+      fetchLocation()
+      alertSuccessResponse()
+      const responseMessage = responseParse?.message;
+      successMessages.value = responseMessage;
+      isLocationDialogVisible.value = false
+    } else {
+      alertErrorResponse()
+      throw new Error("Created data failed");
+    }
+  } catch (error) {
+    alertErrorResponse()
+  }
+}
 
-// const fetchLocationUpdate = async (id, formData, clearedForm) => {
-//   try {
-//     const response = await $api(`/configurations/signature-type/update/${id}`, {
-//         method: 'PUT',
-//         body: JSON.stringify(formData),
-//         onResponseError({ response }) {
-//           alertErrorResponse()
-//           const responseData = response._data;
-//           const responseMessage = responseData.message;
-//           const responseErrors = responseData.errors;
-//           errors.value = responseErrors;
-//           errorMessages.value = responseMessage;
-//           throw new Error("Updated data failed");
-//         },
-//       });
+const fetchLocationUpdate = async (id, formData, clearedForm) => {
+  try {
+    const response = await $api(`/apps/location/update/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(formData),
+        onResponseError({ response }) {
+          alertErrorResponse()
+          const responseData = response._data;
+          const responseMessage = responseData.message;
+          const responseErrors = responseData.errors;
+          errors.value = responseErrors;
+          errorMessages.value = responseMessage;
+          throw new Error("Updated data failed");
+        },
+      });
     
-//     const responseStringify = JSON.stringify(response);
-//     const responseParse = JSON.parse(responseStringify);
+    const responseStringify = JSON.stringify(response);
+    const responseParse = JSON.parse(responseStringify);
 
-//     if(responseParse?.status == 200) {
-//       clearedForm()
-//       fetchLocation()
-//       alertSuccessResponse()
-//       const responseMessage = responseParse?.message;
-//       successMessages.value = responseMessage;
-//       isLocationDialogVisible.value = false
-//     } else {
-//       alertErrorResponse()
-//       throw new Error("Updated data failed");
-//     }
-//   } catch (error) {
-//     alertErrorResponse()
-//   }
-// }
+    if(responseParse?.status == 200) {
+      clearedForm()
+      fetchLocation()
+      alertSuccessResponse()
+      const responseMessage = responseParse?.message;
+      successMessages.value = responseMessage;
+      isLocationDialogVisible.value = false
+    } else {
+      alertErrorResponse()
+      throw new Error("Updated data failed");
+    }
+  } catch (error) {
+    alertErrorResponse()
+  }
+}
 
-// const deleteLocation = async id => {
-//   try {
-//     isLocationTypeDialog.value = 'Delete'
-//     const idLocation = Number(id);
-//     const response = await $api(`/configurations/signature-type/delete/${idLocation}`, {
-//         method: 'DELETE',
-//         onResponseError({ response }) {
-//         alertErrorResponse()
-//         const responseData = response._data;
-//         const responseMessage = responseData.message;
-//         const responseErrors = responseData.errors;
-//         errors.value = responseErrors;
-//         errorMessages.value = responseMessage;
-//         throw new Error("Deleted data failed");
-//       },
-//     })
-//     const responseStringify = JSON.stringify(response);
-//     const responseParse = JSON.parse(responseStringify);
-
-//     if(responseParse?.status == 200) {
-//       fetchLocation()
-//       alertSuccessResponse()
-//       const responseMessage = responseParse?.message;
-//       successMessages.value = responseMessage;
-//       isLocationDialogDeleteVisible.value = false;
-//     } else {
-//       alertErrorResponse()
-//       throw new Error("Deleted data failed");
-//     }
-//   } catch (error) {
-//     alertErrorResponse()
-//   }
-// }
-
-// const handleFormSubmit = async ({mode, formData, dialogUpdate}) => {
-//   if (mode === "Add") {
-//     fetchAddData(formData, dialogUpdate)
-//   } else if(mode === 'Edit') {
-//     fetchLocationUpdate(IDLocation.value, formData, dialogUpdate)
-//   }
-// }
+const handleFormSubmit = async ({mode, formData, dialogUpdate}) => {
+  if (mode === "Add") {
+    fetchAddData(formData, dialogUpdate)
+  } else if(mode === 'Edit') {
+    fetchLocationUpdate(IDLocation.value, formData, dialogUpdate)
+  }
+}
 </script>
 
 <template>
@@ -278,13 +244,19 @@ const updateErrors = err => {
         show-select
         @update:options="updateOptions"
       >
-        <!-- Signature Type -->
+        <!-- No -->
+        <template #item.no="{ index }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ (page - 1) * itemsPerPage + index + 1 }}
+          </div>
+        </template>
+        <!-- Location -->
         <template #item.loc_app="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             {{ item.loc_app != null && item.loc_app != '' ? item.loc_app : '-' }}
           </div>
         </template>
-
+        <!-- Trigger Codereadr -->
         <template #item.join_first_cr_db_name="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             {{ item.join_first_cr_db_name != null && item.join_first_cr_db_name != '' ? item.join_first_cr_db_name : '-' }}
@@ -293,16 +265,10 @@ const updateErrors = err => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="openDialog({id: item.st_id, type: 'Edit'})">
+          <IconBtn @click="openDialog({id: item.id, type: 'Edit'})">
             <VIcon icon="tabler-edit" />
             <VTooltip open-delay="200" location="top" activator="parent">
               <span>Edit data</span>
-            </VTooltip>
-          </IconBtn>
-          <IconBtn @click="openDialogDelete(item.st_id)">
-            <VIcon icon="tabler-trash" />
-            <VTooltip open-delay="200" location="top" activator="parent">
-              <span>Delete data</span>
             </VTooltip>
           </IconBtn>
         </template>
@@ -323,19 +289,13 @@ const updateErrors = err => {
     v-model:isDialogVisible="isLocationDialogVisible"
     :errors="errors"
     :typeDialog="isLocationTypeDialog"
-    :Location-id="IDLocation"
+    :location-id="IDLocation"
     :fetch-trigger="fetchTrigger"
     @isSnackbarResponseAlertColor="updateSnackbarResponseAlertColor"
     @isSnackbarResponse="updateSnackbarResponse"
-    @LocationData="handleFormSubmit"
+    @locationData="handleFormSubmit"
     @errorMessages="updateErrorMessages"
     @errors="updateErrors"
-  />
-  <LocationDeleteDialog
-    v-model:isDialogDeleteVisible="isLocationDialogDeleteVisible"
-    :Location-id="IDLocation"
-    :fetch-trigger="fetchTrigger"
-    @id-deleted="deleteLocation"
   />
   <VSnackbar
     v-model="isSnackbarResponse"

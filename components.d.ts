@@ -382,6 +382,8 @@ declare module 'vue' {
     I18n: typeof import('./resources/js/@core/components/I18n.vue')['default']
     JobTypeAddDialog: typeof import('./resources/js/components/jobType/JobTypeAddDialog.vue')['default']
     JobTypeDeleteDialog: typeof import('./resources/js/components/jobType/JobTypeDeleteDialog.vue')['default']
+    LocationAddDialog: typeof import('./resources/js/components/location/LocationAddDialog.vue')['default']
+    LocationDeleteDialog: typeof import('./resources/js/components/location/LocationDeleteDialog.vue')['default']
     ManDaysAddDialog: typeof import('./resources/js/components/manDays/ManDaysAddDialog.vue')['default']
     ManDaysDeleteDialog: typeof import('./resources/js/components/manDays/ManDaysDeleteDialog.vue')['default']
     MoreBtn: typeof import('./resources/js/@core/components/MoreBtn.vue')['default']
