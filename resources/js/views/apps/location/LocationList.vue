@@ -11,7 +11,6 @@ const sortBy = ref()
 const orderBy = ref()
 const selectedRows = ref([])
 const isLocationDialogVisible = ref(false)
-const isLocationDialogDeleteVisible = ref(false)
 const isLocationTypeDialog = ref('Add')
 const IDLocation = ref(0)
 const isSnackbarResponse = ref(false)
@@ -102,11 +101,11 @@ const updateErrors = err => {
   errors.value = err;
 }
 
-const fetchAddData = async (LocationData, clearedForm) => {
+const fetchAddData = async (locationData, clearedForm) => {
   try {
       const response = await $api('/apps/location/add', {
         method: 'POST',
-        body: JSON.stringify(LocationData),
+        body: JSON.stringify(locationData),
         onResponseError({ response }) {
           alertErrorResponse()
           const responseData = response._data;
@@ -138,6 +137,7 @@ const fetchAddData = async (LocationData, clearedForm) => {
 }
 
 const fetchLocationUpdate = async (id, formData, clearedForm) => {
+  console.log("location: ", formData)
   try {
     const response = await $api(`/apps/location/update/${id}`, {
         method: 'PUT',
@@ -173,6 +173,7 @@ const fetchLocationUpdate = async (id, formData, clearedForm) => {
 }
 
 const handleFormSubmit = async ({mode, formData, dialogUpdate}) => {
+  console.log("location submit: ", formData)
   if (mode === "Add") {
     fetchAddData(formData, dialogUpdate)
   } else if(mode === 'Edit') {
@@ -293,7 +294,7 @@ const handleFormSubmit = async ({mode, formData, dialogUpdate}) => {
     :fetch-trigger="fetchTrigger"
     @isSnackbarResponseAlertColor="updateSnackbarResponseAlertColor"
     @isSnackbarResponse="updateSnackbarResponse"
-    @locationData="handleFormSubmit"
+    @LocationData="handleFormSubmit"
     @errorMessages="updateErrorMessages"
     @errors="updateErrors"
   />

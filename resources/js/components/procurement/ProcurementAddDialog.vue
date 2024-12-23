@@ -40,75 +40,50 @@ const refVForm = ref()
 const typeDialog = computed(() => props.typeDialog)
 const procurementId = computed(() => props.procurementId)
 const loadingBtn = ref([])
+const isFileAttachment = ref('')
 const procurementData = reactive({
-  st_desc: "",
-  st_user: []
+  visitor_name: null,
+  visitor_photo: null,
+  purpose: null,
+  non_exp: null,
+  duration: null,
+  acc_level: []
 });
-const dataMerUser = ref([])
+const dataAccessLevel = ref([])
+
+const fetchAccessLevel = async () => {
+  try {
+    const response = await $api(`/apps/procurement/list`, {
+      method: 'GET',
+    });
+    if (response.status === 200) {
+
+      const rows = response.data.rows || [];
+      dataAccessLevel.value = rows.map((row) => ({
+        title: row.acc_desc,
+        value: row.acc_level,
+      }));
+    } else {
+      console.error('Failed to fetch Access Level data');
+    }
+    
+  } catch (error) {
+    console.error('Error fetching Access Level data');
+  }
+}
 
 const dialogModelValueUpdate = () => {
-  procurementData.st_desc = "";
-  procurementData.st_user = [];
+  procurementData.visitor_name = null,
+  procurementData.visitor_photo = null,
+  procurementData.purpose = null,
+  procurementData.non_exp = null,
+  procurementData.duration = null,
+  procurementData.acc_level = [];
+  isFileAttachment.value = ''
   refVForm.value?.reset()
   refVForm.value?.resetValidation()
   loadingBtn.value[0] = false;
   emit('update:isDialogVisible', false)
-}
-
-const fetchMerUserData = async () => {
-  try {
-    const response = await getListMerUser('approval');
-    if (response.status === 200) {
-
-      const rows = response.data.rows || [];
-      dataMerUser.value = rows.map((row) => ({
-        title: row.display_name,
-        value: row.id,
-      }));
-    } else {
-      console.error('Failed to fetch mer business units data');
-    }
-    
-  } catch (error) {
-    console.error('Error fetching mer business units data');
-  }
-}
-
-const fetchProcurementEdit = async () => {
-  try {
-    isLoading.value = true;
-    const response = await $api(`/apps/procurement/edit/${procurementId.value}`, {
-      method: 'GET',
-      onResponseError({ response }) {
-        const responseData = response._data;
-        const responseMessage = responseData.message;
-        const responseErrors = responseData.errors;
-        emit('errors', responseErrors);
-        emit('errorMessages', responseMessage);
-        emit('update:isDialogVisible', false)
-        throw new Error("Get data failed");
-      },
-    });
-    
-    const dataResponse = JSON.parse(JSON.stringify(response));
-    if (dataResponse.status == 200) {
-      const dataResult = dataResponse.data;
-      isLoading.value = false;
-      procurementData.st_desc = dataResult.st_desc;
-      procurementData.st_user = dataResult.st_user.split(",")
-        .map((id) => parseInt(id.trim(), 10));
-    } else {
-      emit('update:isDialogVisible', false)
-      emit('isSnackbarResponse',true)
-      emit('isSnackbarResponseAlertColor', 'error')
-      throw new Error("Get data failed");
-    }
-  } catch (error) {
-    isLoading.value = false;
-    emit('update:isDialogVisible', false)
-    emit('isSnackbarResponse',true)
-    emit('isSnackbarResponseAlertColor', 'error')
-  }
 }
 
 watch(
@@ -119,7 +94,7 @@ watch(
       } else if (newType === "Add") {
         isLoading.value = false;
       }
-      fetchMerUserData()
+      fetchAccessLevel();
       loadingBtn.value[0] = false;
   },
   { immediate: true }
@@ -162,7 +137,7 @@ const onSubmit = async () => {
                       <Skeletor width="85" height="26" class="mt-5" pill/>
                     </div>
                     <div class="text-h4 font-weight-medium" v-if="!isLoading">
-                      {{ typeDialog == 'Edit' ? 'Edit' : 'Create New' }} Procurement
+                      {{ typeDialog == 'Edit' ? 'Edit' : 'Create New' }} Procurement Barcode
                     </div>
                   </div>
                 </div>
@@ -186,11 +161,10 @@ const onSubmit = async () => {
                     <VCol cols="12" v-if="!isLoading">
                       <h5>(*) Is required</h5>
                     </VCol>
-                    <VCol cols="12" v-if="!isLoading">
-                      <VRow>
-                        <VCol cols="12" md="6">
+                    <VCol cols="12" md="6" v-if="!isLoading">
+                      <VCol>
                           <AppTextField
-                            v-model="procurementData.id"
+                            v-model="procurementData.visitor_name"
                             persistent-placeholder
                             label="Vendor's Name*"
                             placeholder="Type here..."
@@ -198,24 +172,77 @@ const onSubmit = async () => {
                             :error-messages="props.errors?.st_desc"
                             required
                           />
-                        </VCol>
-                        <VCol cols="12" md="6">
+                      </VCol>
+                      <VCol>
+                          <VFileInput
+                            label="Vendor's Photo"
+                            v-model="procurementData.visitor_photo"
+                            :error-messages="props.errors?.visitor_photo"                      
+                            accept="image/png, image/jpeg, image/jpg, image/gif, image/tiff, image/heic, application/pdf"
+                            placeholder="Pick a file"
+                          />
+                            <small>Accepted: .pdf,.jpg,.jpeg,.png, MAX: 5MB</small>
+                            <RouterLink v-if="isFileAttachment != null && isFileAttachment != ''"> 
+                              <small class="" @click="openPathDialog(isFileAttachment)">
+                              View data
+                              </small>
+                            </RouterLink>
+                      </VCol>
+                      <VCol>
+                          <AppTextField
+                            v-model="procurementData.purpose"
+                            persistent-placeholder
+                            label="Purpose"
+                            placeholder="Type here..."
+                            :rules="[requiredValidator]"
+                            :error-messages="props.errors?.st_desc"
+                            required
+                          />
+                      </VCol>
+                    </VCol>
+                    <VCol cols="12" md="6" v-if="!isLoading">
+                      <VCol>
                         <AppAutocomplete
-                          label="Person* (multiple select)"
-                          v-model="procurementData.aplication_name"
-                          :items="dataMerUser"
+                          label="Expired Type"
+                          v-model="procurementData.non_exp"
+                          :items="[
+                            { value: true, title: 'Non-Expired' },
+                            { value: false, title: 'Expired' },
+                          ]"
+                          :item-title="'title'"
+                          :item-value="'value'"
+                          placeholder="Select Type"
+                        />
+                        <small v-if="procurementData.non_exp == false">Access will be expire according to Expired Date</small>
+                        <small v-else >Access will not be expired</small>
+                      </VCol>
+                      <VCol>
+                        <AppDateTimePicker
+                          label="Barcode Expired Duration*"
+                          v-model="procurementData.duration"
+                          placeholder="Select range date"
+                          :config="{ mode: 'range' }"
+                          :rules="[requiredValidator]"
+                          :error-messages="props.errors?.duration"
+                          clearable
+                        />
+                      </VCol>
+                      <VCol>
+                        <AppAutocomplete
+                          label="Access Level* (multiple select)"
+                          v-model="procurementData.acc_level"
+                          :items="dataAccessLevel"
                           :item-title="'title'"
                           :item-value="'value'"
                           :rules="[requiredValidator]"
-                          :error-messages="props.errors?.aplication_name"
-                          placeholder="Select multiple person"
+                          :error-messages="props.errors?.acc_level"
+                          placeholder="Select access level"
                           chips
                           multiple
                           closable-chips
                           clearable
                         />
                       </VCol>
-                      </VRow>
                     </VCol>
                   </VRow>
                   <VCol cols="12" class="mt-5">

@@ -239,7 +239,7 @@ const headers = [
           <div class="text-body-1 text-high-emphasis text-capitalize">
             <template v-if="item.status == 1 && item.aplication_name == 'Security Information System'">
                 <button class="btn" >
-                      <img :src="`/barcode/${item.qr_image}`" width="100px" class="img img-responsive mt-2" alt="">
+                      <img :src="`storage/barcode/${item.qr_image}`" width="100px" class="img img-responsive mt-2" alt="">
                     <br>
                     {{ item.visitor_name }}
                   </button>

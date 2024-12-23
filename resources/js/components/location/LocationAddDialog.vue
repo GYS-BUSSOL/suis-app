@@ -5,7 +5,7 @@ import { VForm } from 'vuetify/components/VForm';
 
 const emit = defineEmits([
   'update:isDialogVisible',
-  'locationData',
+  'LocationData',
   'isSnackbarResponse',
   'isSnackbarResponseAlertColor',
   'errorMessages',
@@ -132,7 +132,7 @@ const onSubmit = async () => {
       if (valid) {
         loadingBtn.value[0] = true
         const mode = props.typeDialog;
-        emit("locationData", { mode, formData: { ...locationData }, dialogUpdate: dialogModelValueUpdate });
+        emit("LocationData", { mode, formData: { ...locationData }, dialogUpdate: dialogModelValueUpdate });
       } else {
         loadingBtn.value[0] = false
       }

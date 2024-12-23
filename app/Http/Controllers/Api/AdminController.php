@@ -69,13 +69,6 @@ class AdminController extends Controller
         }
 
         try {
-            if (is_string($validated['loc_app'])) {
-                $validated['loc_app'] = json_decode($validated['loc_app'], true);
-            }
-
-            if (is_string($validated['loc_db_codereadr'])) {
-                $validated['loc_db_codereadr'] = json_decode($validated['loc_db_codereadr'], true);
-            }
 
             $this->maploc->create($validated);
 
@@ -135,13 +128,6 @@ class AdminController extends Controller
                     "status" => 404,
                     "message" => "Signature type not found",
                 ], 404);
-            }
-            if (is_string($validated['loc_app'])) {
-                $validated['loc_app'] = json_decode($validated['loc_app'], true);
-            }
-
-            if (is_string($validated['loc_db_codereadr'])) {
-                $validated['loc_db_codereadr'] = json_decode($validated['loc_db_codereadr'], true);
             }
 
             if ($location->update($validated)) {

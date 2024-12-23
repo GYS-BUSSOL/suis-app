@@ -49,7 +49,7 @@ Route::group(['prefix' => 'apps'], function () {
   });
   // Procurement
   Route::controller(ProcurementController::class)->group(function () {
-    Route::get('/procurement/list', 'list');
+    Route::get('/procurement/list', 'listAccessLevel');
     Route::post('/procurement/search', 'search');
     Route::post('/procurement/add', 'add');
     Route::get('/procurement/edit/{id}', 'edit');
