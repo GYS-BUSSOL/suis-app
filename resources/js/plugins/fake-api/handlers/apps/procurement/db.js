@@ -12,7 +12,7 @@ export async function fetchProcurement(currentPage, rowPerPage, rowSearch) {
           "length": rowPerPage
       },
       "select": [
-        "id", "aplication_name", "location", "header_value", "exp_date", "start_date", "visitor_name", "del", "qr_image", "status"
+        "id", "aplication_name", "location", "header_value", "exp_date", "start_date", "visitor_name", "del", "qr_image", "status", "barcode"
     ],
       "columns": [
         {

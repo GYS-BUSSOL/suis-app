@@ -52,11 +52,6 @@ const openDialog = async ({ id = null, type }) => {
     fetchTrigger.value += 1;
 }
 
-const openDialogDelete = async (id) => {
-  IDPartner.value = id
-  isPartnerDialogDeleteVisible.value = true
-}
-
 const updateSnackbarResponse = res => {
   isSnackbarResponse.value = res;
 }
@@ -88,9 +83,22 @@ const updateErrors = err => {
 // add
 const fetchAddData = async (partnerData, clearedForm) => {
   try {
+    const formData = new FormData();
+      
+    for (const [key, value] of Object.entries(partnerData)) {
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          formData.append(`${key}[${index}]`, item);
+        });
+      } else {
+        formData.append(key, value);
+      }
+    }
       const response = await $api('/apps/partner/add', {
         method: 'POST',
-        body: JSON.stringify(partnerData),
+        body: formData,
         onResponseError({ response }) {
           alertErrorResponse()
           const responseData = response._data;
@@ -118,6 +126,12 @@ const fetchAddData = async (partnerData, clearedForm) => {
     }
   } catch (error) {
     alertErrorResponse()
+  }
+}
+
+const handleFormSubmit = async ({mode, formData, dialogUpdate}) => {
+  if (mode === "Add") {
+    fetchAddData(formData, dialogUpdate)
   }
 }
 
@@ -262,10 +276,11 @@ const headers = [
         <template #item.download_barcode="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             <template v-if="item.status == 1 && item.aplication_name == 'Security Information System'">
-                  <button class="btn bg-info px-3 py-2 rounded text-center" download>
-                    <img src="" alt="">
-                    <VIcon icon="tabler-download" />
-                    Download Barcode
+              <button class="btn bg-info px-3 py-2 rounded text-center">
+                    <a :href="`/storage/card/${item.barcode}`" class="text-white text-decoration-none" download>
+                      <VIcon icon="tabler-download" />
+                      Download Barcode
+                    </a>
                   </button>
                 </template>
                 <template v-else-if="item.status == 0 && item.aplication_name == 'Security Information System'">

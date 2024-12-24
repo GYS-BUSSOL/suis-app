@@ -2,7 +2,7 @@
     <table width="370px" cellpadding="5px" style="border: 1px solid #666666">
         <tr>
             <th colspan="2" align="center">
-                <img width="100px" style="padding: 5px;" src="{{ public_path('resources/images/GYSLogo.png') }}"
+                <img width="100px" style="padding: 5px;" src="{{ public_path('storage/GYSLogo.png') }}"
                     alt="Garuda Yamato Steel">
             </th>
         </tr>
@@ -18,7 +18,7 @@
             </th>
         </tr>
         <tr>
-            <td align="center" colspan="4">{{ $visit }}</td>
+            <td align="center" colspan="4">{{ $visitor_name }}</td>
         </tr>
     </table>
 </div>

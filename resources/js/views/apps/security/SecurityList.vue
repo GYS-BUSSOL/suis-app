@@ -86,10 +86,23 @@ const updateErrors = err => {
 
 // add
 const fetchAddData = async (securityData, clearedForm) => {
+  const formData = new FormData();
+      
+    for (const [key, value] of Object.entries(securityData)) {
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          formData.append(`${key}[${index}]`, item);
+        });
+      } else {
+        formData.append(key, value);
+      }
+    }
   try {
       const response = await $api('/apps/security/add', {
         method: 'POST',
-        body: JSON.stringify(securityData),
+        body: formData,
         onResponseError({ response }) {
           alertErrorResponse()
           const responseData = response._data;
@@ -117,6 +130,12 @@ const fetchAddData = async (securityData, clearedForm) => {
     }
   } catch (error) {
     alertErrorResponse()
+  }
+}
+
+const handleFormSubmit = async ({mode, formData, dialogUpdate}) => {
+  if (mode === "Add") {
+    fetchAddData(formData, dialogUpdate)
   }
 }
 
@@ -239,7 +258,7 @@ const headers = [
           <div class="text-body-1 text-high-emphasis text-capitalize">
             <template v-if="item.status == 1 && item.aplication_name == 'Security Information System'">
                 <button class="btn" >
-                      <img :src="`storage/barcode/${item.qr_image}`" width="100px" class="img img-responsive mt-2" alt="">
+                      <img :src="`/storage/barcode/${item.qr_image}`" width="100px" class="img img-responsive mt-2" alt="">
                     <br>
                     {{ item.visitor_name }}
                   </button>
@@ -260,10 +279,11 @@ const headers = [
         <template #item.download_barcode="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             <template v-if="item.status == 1 && item.aplication_name == 'Security Information System'">
-                  <button class="btn bg-info px-3 py-2 rounded text-center" download>
-                    <img src="" alt="">
-                    <VIcon icon="tabler-download" />
-                    Download Barcode
+              <button class="btn bg-info px-3 py-2 rounded text-center">
+                    <a :href="`/storage/card/${item.barcode}`" class="text-white text-decoration-none" download>
+                      <VIcon icon="tabler-download" />
+                      Download Barcode
+                    </a>
                   </button>
                 </template>
                 <template v-else-if="item.status == 0 && item.aplication_name == 'Security Information System'">

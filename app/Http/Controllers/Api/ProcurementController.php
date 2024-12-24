@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Api;
 use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\TransSendQr;
+use App\Models\TransSendQrDetail;
+use BaconQrCode\Encoder\QrCode as EncoderQrCode;
+use BaconQrCode\Renderer\GDLibRenderer;
+use BaconQrCode\Writer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Http\{Request, JsonResponse};
@@ -15,10 +19,12 @@ use Illuminate\Support\Facades\Log;
 class ProcurementController extends Controller
 {
     protected $sendqr;
+    protected $sendqrDetail;
 
-    public function __construct(TransSendQr $sendqr)
+    public function __construct(TransSendQr $sendqr, TransSendQrDetail $sendqrDetail)
     {
         $this->sendqr = $sendqr;
+        $this->sendqrDetail = $sendqrDetail;
     }
 
     public function search(Request $request)
@@ -88,7 +94,7 @@ class ProcurementController extends Controller
     {
         $filename = $visitorPhoto . '.' . $file->getClientOriginalExtension();
         $file->move(public_path('storage/Photo'), $filename);
-        return 'Photo/' . $filename;
+        return $filename;
     }
 
     public function add(Request $request)
@@ -129,10 +135,9 @@ class ProcurementController extends Controller
             $batas = str_pad($kode, 3, "0", STR_PAD_LEFT);
             // Gabungkan prefix dan nomor untuk menghasilkan kode QR
             $kodeqr = $prefix . $batas;
+            $qrImage = $kodeqr . '.png';
 
-            $path = storage_path('storage/barcode/' . $kodeqr . '.png');
-            // QrCode::format('png')->size(300)->generate($kodeqr, $path);
-
+            $path = public_path('storage/barcode/' . $qrImage);
             $visitorPhoto = "visitor_" . $kodeqr;
 
             if ($request->hasFile('visitor_photo')) {
@@ -152,72 +157,60 @@ class ProcurementController extends Controller
             // data yang dimasukan table trans_sendQr
             $insSendQr = [
                 "aplication_name"    => "Security Information System",
-                "header_value"        => $kodeqr,
-                "visitor_name"        => $validated['visitor_name'],
-                "visitor_photo"        => $uploadedAttachment,
+                "header_value"       => $kodeqr,
+                "visitor_name"       => $validated['visitor_name'],
+                "visitor_photo"      => $uploadedAttachment,
                 "purpose"            => $validated['purpose'],
-                "start_date"        => $start_date,
-                "exp_date"            => $exp_date,
+                "start_date"         => $start_date,
+                "exp_date"           => $exp_date,
                 "non_exp"            => $validated['non_exp'],
-                "istransfer"        => 0,
-                "status"            => 0,
-                "crd_status"        => 0,
-                "vault_status"        => 0,
-                "crby"                => $userName,
-                "crdt"                => date("Y-m-d H:i")
+                "istransfer"         => 0,
+                "status"             => 0,
+                "crd_status"         => 0,
+                "vault_status"       => 0,
+                "crby"               => $userName,
+                "crdt"               => date("Y-m-d H:i")
             ];
 
             $transSendQr = $this->sendqr->create($insSendQr);
             if ($transSendQr) {
                 $headerID = $transSendQr->id;
-                // data untuk dimasukkan ke tabel trans_sendQr_detail
-                for ($i = 0; $i < count($validated['acc_level']); $i++) {
-                    $insDtl = array(
-                        "id_header"        => $headerID,
-                        "acc_level"        => $validated['acc_level'][$i],
-                        "istransfer"    => 0
-                    );
-
-                    $this->sendqr->create($insDtl);
-                }
-                // Ambil data dari database
                 $data = DB::table('trans_sendQr')->where('id', $headerID)->first();
+                // data untuk dimasukkan ke tabel trans_sendQr_detail
+                foreach ($validated['acc_level'] as $level) {
+                    $insDtl = [
+                        "id_header"  => $headerID,
+                        "acc_level"  => $level,
+                        "istransfer" => 0,
+                    ];
 
-                if (!$data) {
-                    return response()->json(['error' => 'Data tidak ditemukan'], 404);
+                    $this->sendqrDetail->create($insDtl);
                 }
-
                 // Data untuk view PDF
-                $description = "
-                    <html>
-                    <h1>{$data->visitor_name}</h1><br>
-                    <div>
-                        <b>NBP ACCESS - VISITOR </b><br>
-                        <b>PURPOSE/KEPERLUAN : {$data->purpose} </b><br>
-                        [{$data->location}: ACCESS GRANTED / AKSES DIBERIKAN]
-                    </div>
-                    </html>
-                ";
+                $description = "<html><h1>{$data->visitor_name}</h1><br><div><b>NBP ACCESS - VISITOR </b><br><b>PURPOSE/KEPERLUAN : {$data->purpose} </b><br>[{$data->location}: ACCESS GRANTED / AKSES DIBERIKAN]</div></html>";
 
                 $viewData = [
                     'visitor_name' => $data->visitor_name,
-                    'barcode' => $kodeqr,
+                    'barcode' => $qrImage,
                 ];
 
-                if (QrCode::format('png')->size(300)->generate($kodeqr, $path)) {
+                $renderer = new GDLibRenderer(400);
+                $writer = new Writer($renderer);
+                $writer->writeFile($qrImage, $path);
+                if (file_exists($path)) {
                     // Render HTML untuk PDF
-                    $pdfHtml = view('cards', $viewData)->render();
+                    $pdfHtml = view('pdf.pdf', $viewData)->render();
 
                     // Generate PDF
                     $pdf = Pdf::loadHTML($pdfHtml)->setPaper('a4', 'portrait');
-                    $pdfPath = public_path("storage/card/{$kodeqr}.pdf");
+                    $pdfPath = public_path("storage/card/{$qrImage}.pdf");
                     file_put_contents($pdfPath, $pdf->output());
                     // Update database
                     DB::table('trans_sendQr')
                         ->where('id', $headerID)
                         ->update([
-                            'barcode' => "{$kodeqr}.pdf",
-                            'qr_image' => $kodeqr,
+                            'barcode' => "{$qrImage}.pdf",
+                            'qr_image' => $qrImage,
                             'status' => 1,
                             'description' => $description,
                         ]);
@@ -232,32 +225,6 @@ class ProcurementController extends Controller
                 'status' => 500,
                 'error' => 'Server error',
                 'message' => 'Procurement Barcode failed to create' . $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function destroy(int $id)
-    {
-        try {
-            $proc = $this->sendqr->firstWhere('id', $id);
-            if (empty($proc)) {
-                return response()->json([
-                    "status" => 404,
-                    "message" => "Procurement not found",
-                ], 404);
-            }
-
-            if ($proc->delete()) {
-                return response()->json([
-                    "status" => 200,
-                    "message" => "Successfully deleted Procurement data"
-                ], 200);
-            }
-        } catch (\Exception $e) {
-            return response()->json([
-                "status" => 500,
-                "message" => "Failed to delete Procurement data",
-                "error" => "Server error",
             ], 500);
         }
     }

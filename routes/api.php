@@ -40,7 +40,7 @@ Route::group(['prefix' => 'apps'], function () {
   });
   // Partner
   Route::controller(PartnerController::class)->group(function () {
-    Route::get('/partner/list', 'list');
+    Route::get('/partner/list', 'listAccessLevel');
     Route::post('/partner/search', 'search');
     Route::post('/partner/add', 'add');
     Route::get('/partner/edit/{id}', 'edit');
@@ -58,7 +58,7 @@ Route::group(['prefix' => 'apps'], function () {
   });
   // Security
   Route::controller(SecurityController::class)->group(function () {
-    Route::get('/security/list', 'list');
+    Route::get('/security/list', 'listAccessLevel');
     Route::post('/security/search', 'search');
     Route::post('/security/add', 'add');
     Route::get('/security/edit/{id}', 'edit');
