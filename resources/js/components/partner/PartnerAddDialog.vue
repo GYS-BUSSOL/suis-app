@@ -102,6 +102,10 @@ watch(
   { immediate: true }
 );
 
+const updateExpMode = () => {
+  partnerData.non_exp = selectedValue;
+}
+
 const onSubmit = async () => {
   refVForm.value?.validate().then(({ valid }) => {
     try {
@@ -219,14 +223,36 @@ const onSubmit = async () => {
                     </VCol>
                     <VCol cols="12" md="6" v-if="!isLoading">
                       <VCol>
-                        <AppDateTimePicker
-                          label="Barcode Expired Duration*"
+                        <AppDateTimePicker v-if="partnerData.non_exp == false"
+                          label="Select Start and End Date*"
                           v-model="partnerData.duration"
                           placeholder="Select range date"
                           :config="{ mode: 'range' }"
                           :rules="[requiredValidator]"
                           :error-messages="props.errors?.duration"
                           clearable
+                        />
+                        <AppDateTimePicker v-else
+                          label="Select Start Date*"
+                          v-model="partnerData.duration"
+                          placeholder="Select start date"
+                          
+                          :rules="[requiredValidator]"
+                          :error-messages="props.errors?.duration"
+                          clearable
+                        />
+                      </VCol>
+                      <VCol>
+                        <AppAutocomplete
+                          label="Location"
+                          v-model="partnerData.location"
+                          :items="[
+                            { value: 'Mess', title: 'Mess' },
+                            { value: 'Office Parking and Waiting Area', title: 'Office Parking and Waiting Area' },
+                          ]"
+                          :item-title="'title'"
+                          :item-value="'value'"
+                          placeholder="Select Location"
                         />
                       </VCol>
                       <VCol>
@@ -243,19 +269,6 @@ const onSubmit = async () => {
                           multiple
                           closable-chips
                           clearable
-                        />
-                      </VCol>
-                      <VCol>
-                        <AppAutocomplete
-                          label="Location"
-                          v-model="partnerData.location"
-                          :items="[
-                            { value: 'Mess', title: 'Mess' },
-                            { value: 'Office Parking and Waiting Area', title: 'Office Parking and Waiting Area' },
-                          ]"
-                          :item-title="'title'"
-                          :item-value="'value'"
-                          placeholder="Select Location"
                         />
                       </VCol>
                     </VCol>

@@ -13,9 +13,14 @@ export const redirects = [
       const userRole = userData.value?.usr_access
       if (userRole === 'admin')
         return { name: 'apps-barcode-security' }
-      if (userRole === 'client')
+      if (userRole === 'partner')
+        return { name: 'apps-barcode-partner' }
+      if (userRole === 'approvalpartner')
+        return { name: 'apps-barcode-partner-approval' }
+      if (userRole === 'proc')
         return { name: 'access-control' }
-      
+      if (userRole === 'ga')
+        return { name: 'access-control' }
       return { name: 'login', query: to.query }
     },
   },

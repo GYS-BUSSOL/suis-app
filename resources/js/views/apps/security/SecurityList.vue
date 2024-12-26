@@ -51,11 +51,6 @@ const openDialog = async ({ id = null, type }) => {
     fetchTrigger.value += 1;
 }
 
-const openDialogDelete = async (id) => {
-  IDSecurity.value = id
-  isSecurityDialogDeleteVisible.value = true
-}
-
 const updateSnackbarResponse = res => {
   isSnackbarResponse.value = res;
 }

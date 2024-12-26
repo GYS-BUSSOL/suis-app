@@ -225,20 +225,7 @@ const onSubmit = async () => {
                           clearable
                         />
                       </VCol>
-                      <VCol cols="12" md="6" v-if="!isLoading">
-                      <VRow>
-                        <VCol >
-                          <label for="">Access Level*</label>
-                          <VCheckbox v-for="(item, index) in dataAccessLevel" :key="item.id"
-                            v-model="securityData.acc_level"
-                            :label="item.title"
-                            :value="item.value"
-                            :error-messages="errors?.acc_level"
-                          />
-                        </VCol>
-                      </VRow>
-                      </VCol>
-                      <!-- <VCol>
+                      <VCol>
                         <AppAutocomplete
                           label="Access Level* (multiple select)"
                           v-model="securityData.acc_level"
@@ -253,7 +240,7 @@ const onSubmit = async () => {
                           closable-chips
                           clearable
                         />
-                      </VCol> -->
+                      </VCol>
                     </VCol>
                   </VRow>
                   <VCol cols="12" class="mt-5">

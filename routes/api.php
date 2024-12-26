@@ -46,6 +46,9 @@ Route::group(['prefix' => 'apps'], function () {
     Route::get('/partner/edit/{id}', 'edit');
     Route::put('/partner/update/{id}', 'update');
     Route::delete('/partner/delete/{id}', 'destroy');
+    Route::post('/partner/approval', 'approval');
+    Route::put('/partner/approval/approve/{id}', 'approve');
+    Route::put('/partner/approval/reject/{id}', 'reject');
   });
   // Procurement
   Route::controller(ProcurementController::class)->group(function () {

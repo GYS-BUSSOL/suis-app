@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\{Request, JsonResponse};
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
@@ -38,6 +39,7 @@ class AuthController extends Controller
 
             $username = $validated['username'];
             $password = $validated['password'];
+            $query = $this->user->firstWhere('username', $validated['username']);
 
             $adServers = ["ldap://gysdc01.gyssteel.com", "ldap://gysdc02.gyssteel.com"];
 
@@ -97,6 +99,21 @@ class AuthController extends Controller
                         ], 201);
                     }
                 }
+            } else if ($query && password_verify($password, $query->password)) {
+                $token = $query->createToken('access_token')->plainTextToken;
+
+                return response()->json([
+                    'status' => 201,
+                    'message' => 'Login successfully',
+                    'userAbilityRules' => [
+                        [
+                            'action' => 'manage',
+                            'subject' => 'all',
+                        ],
+                    ],
+                    'userData' => $query,
+                    'accessToken' => $token
+                ], 201);
             } else {
                 return response()->json([
                     'status' => 400,

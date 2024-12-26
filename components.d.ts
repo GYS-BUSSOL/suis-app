@@ -389,6 +389,7 @@ declare module 'vue' {
     MoreBtn: typeof import('./resources/js/@core/components/MoreBtn.vue')['default']
     Notifications: typeof import('./resources/js/@core/components/Notifications.vue')['default']
     PartnerAddDialog: typeof import('./resources/js/components/partner/PartnerAddDialog.vue')['default']
+    PartnerApprovalDialog: typeof import('./resources/js/components/partner/PartnerApprovalDialog.vue')['default']
     PaymentProvidersDialog: typeof import('./resources/js/components/dialogs/PaymentProvidersDialog.vue')['default']
     PBLAddDialog: typeof import('./resources/js/components/pbl/PBLAddDialog.vue')['default']
     PBLDetailDialog: typeof import('./resources/js/components/pbl/PBLDetailDialog.vue')['default']

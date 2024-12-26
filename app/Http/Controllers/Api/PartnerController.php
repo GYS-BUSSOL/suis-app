@@ -36,26 +36,6 @@ class PartnerController extends Controller
             $totalRecord = $countBuilderDistinct->get()->count();
             $totalShowData = $dataGet->count();
 
-            // $resultData = [];
-
-            // foreach ($dataGet as $arrDataParent) {
-            //     $mulData = $this->customData(explode(",", $arrDataParent->st_user));
-            //     $arrMULData = ['aplication_name' => []];
-
-            //     foreach ($mulData as $mermbcw) {
-            //         if (in_array($mermbcw['id'], explode(",", $arrDataParent->st_user))) {
-            //             $arrMULData['aplication_name'][] = [
-            //                 'id' => $mermbcw['id'],
-            //             ];
-            //         }
-            //     }
-            //     $mergedData = array_merge(
-            //         json_decode(json_encode($arrDataParent), true),
-            //         $arrMULData
-            //     );
-            //     $resultData[] = $mergedData;
-            // }
-
             return response()->json([
                 'status' => 200,
                 'message' => 'Successfully retrieved signature type data',
@@ -155,7 +135,6 @@ class PartnerController extends Controller
             $kodeqr = $prefix . $batas;
             $qrImage = $kodeqr . '.png';
 
-            $path = public_path('storage/barcode/' . $qrImage);
             $visitorPhoto = "visitor_" . $kodeqr;
 
             if ($request->hasFile('visitor_photo')) {
@@ -166,10 +145,14 @@ class PartnerController extends Controller
             }
 
             if ($duration) {
-                $duration = trim($duration, '"');
-                list($start_date, $exp_date) = explode(' to ', $duration);
-                $start_date = Carbon::createFromFormat('Y-m-d', $start_date)->format('Y-m-d');
-                $exp_date = Carbon::createFromFormat('Y-m-d', $exp_date)->format('Y-m-d');
+                if ($validated['non_exp'] == 'false') {
+                    $duration = trim($duration, '"');
+                    list($start_date, $exp_date) = explode(' to ', $duration);
+                    $start_date = Carbon::createFromFormat('Y-m-d', $start_date)->format('Y-m-d');
+                    $exp_date = Carbon::createFromFormat('Y-m-d', $exp_date)->format('Y-m-d');
+                } else if ($validated['non_exp'] == 'true') {
+                    $start_date = Carbon::createFromFormat('Y-m-d', $duration)->format('Y-m-d');
+                }
             }
             // data yang dimasukan table trans_sendQr
             $insSendQr = [
@@ -214,6 +197,110 @@ class PartnerController extends Controller
                 'status' => 500,
                 'error' => 'Server error',
                 'message' => 'Partner Barcode failed to create' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function approval(Request $request)
+    {
+        $tableColumn = $this->sendqr->getTable();
+        try {
+            $payload = $request->all();
+            $dataBuilder = $this->setUpPayload($payload, $tableColumn);
+            $builder = $dataBuilder['builder'];
+            $countBuilderDistinct = $dataBuilder['distinct'];
+            $dataGet = $builder->distinct()->get();
+            $totalRecord = $countBuilderDistinct->get()->count();
+            $totalShowData = $dataGet->count();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Successfully retrieved partner approval data',
+                'data' => [
+                    'rows' => $dataGet,
+                    'total_data' => $totalShowData,
+                    'total_record' => $totalRecord,
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Failed to retrieve partner approval data',
+                'data' => [
+                    'rows' => [],
+                    'error' => $e
+                ],
+            ], 500);
+        }
+    }
+
+    public function approve(Request $request, int $id)
+    {
+        try {
+            $data = DB::table('trans_sendQr')->where('id', $id)->first();
+            $qrImage = $data->header_value . '.png';
+            $path = public_path('storage/barcode/' . $qrImage);
+
+            $description = "<html><h1>{$data->visitor_name}</h1><br><div><b>NBP ACCESS - VISITOR </b><br><b>PURPOSE/KEPERLUAN : {$data->purpose} </b><br>[{$data->location}: ACCESS GRANTED / AKSES DIBERIKAN]</div></html>";
+
+            $viewData = [
+                'visitor_name' => $data->visitor_name,
+                'barcode' => $qrImage,
+            ];
+
+            $renderer = new GDLibRenderer(400);
+            $writer = new Writer($renderer);
+            $writer->writeFile($qrImage, $path);
+            if (file_exists($path)) {
+                // Render HTML untuk PDF
+                $pdfHtml = view('pdf.pdf', $viewData)->render();
+
+                // Generate PDF
+                $pdf = Pdf::loadHTML($pdfHtml)->setPaper('a4', 'portrait');
+                $pdfPath = public_path("storage/card/{$qrImage}.pdf");
+                file_put_contents($pdfPath, $pdf->output());
+                // Update database
+                DB::table('trans_sendQr')
+                    ->where('id', $id)
+                    ->update([
+                        'barcode' => "{$qrImage}.pdf",
+                        'qr_image' => $qrImage,
+                        'status' => 1,
+                        'description' => $description,
+                    ]);
+            }
+            return response()->json([
+                'status' => 200,
+                'message' => 'Successfully approve partner'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Server error',
+                'message' => 'Failed to approve partner' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function reject(Request $request, int $id)
+    {
+        try {
+            DB::table('trans_sendQr')
+                ->where('id', $id)
+                ->update([
+                    'status' => 2,
+                    'crd_status' => 2,
+                    'vault_status' => 2
+                ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Successfully reject partner'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Server error',
+                'message' => 'Failed to reject partner' . $e->getMessage(),
             ], 500);
         }
     }

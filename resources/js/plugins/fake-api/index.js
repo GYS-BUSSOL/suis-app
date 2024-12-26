@@ -11,6 +11,7 @@ import { handlerAppsInvoice } from '@db/apps/invoice/index'
 import { handlerAppsKanban } from '@db/apps/kanban/index'
 import { handlerAppsLocation } from '@db/apps/location/index'
 import { handlerAppLogistics } from '@db/apps/logistics/index'
+import { handlerAppsPartnerApproval } from '@db/apps/partner/approval'
 import { handlerAppsPartner } from '@db/apps/partner/index'
 import { handlerAppsProcurement } from '@db/apps/procurement/index'
 import { handlerAppsSecurity } from '@db/apps/security/index'
@@ -22,6 +23,7 @@ import { handlerPagesHelpCenter } from '@db/pages/help-center/index'
 import { handlerPagesProfile } from '@db/pages/profile/index'
 
 const worker = setupWorker(
+  ...handlerAppsPartnerApproval,
   ...handlerAppsPartner, 
   ...handlerAppsProcurement, 
   ...handlerAppsSecurity, 
