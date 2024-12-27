@@ -394,6 +394,7 @@ declare module 'vue' {
     PBLAddDialog: typeof import('./resources/js/components/pbl/PBLAddDialog.vue')['default']
     PBLDetailDialog: typeof import('./resources/js/components/pbl/PBLDetailDialog.vue')['default']
     PBLViewPathDialog: typeof import('./resources/js/components/pbl/PBLViewPathDialog.vue')['default']
+    PopupImage: typeof import('./resources/js/components/popup/PopupImage.vue')['default']
     PPSOngoingAddDialog: typeof import('./resources/js/components/pps/PPSOngoingAddDialog.vue')['default']
     PPSOngoingDeleteDialog: typeof import('./resources/js/components/pps/PPSOngoingDeleteDialog.vue')['default']
     PPSOngoingDetailDialog: typeof import('./resources/js/components/pps/PPSOngoingDetailDialog.vue')['default']

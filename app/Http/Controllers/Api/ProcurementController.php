@@ -149,10 +149,14 @@ class ProcurementController extends Controller
             }
 
             if ($duration) {
-                $duration = trim($duration, '"');
-                list($start_date, $exp_date) = explode(' to ', $duration);
-                $start_date = Carbon::createFromFormat('Y-m-d', $start_date)->format('Y-m-d');
-                $exp_date = Carbon::createFromFormat('Y-m-d', $exp_date)->format('Y-m-d');
+                if ($validated['non_exp'] == 'false') {
+                    $duration = trim($duration, '"');
+                    list($start_date, $exp_date) = explode(' to ', $duration);
+                    $start_date = Carbon::createFromFormat('Y-m-d', $start_date)->format('Y-m-d');
+                    $exp_date = Carbon::createFromFormat('Y-m-d', $exp_date)->format('Y-m-d');
+                } else if ($validated['non_exp'] == 'true') {
+                    $start_date = Carbon::createFromFormat('Y-m-d', $duration)->format('Y-m-d');
+                }
             }
             // data yang dimasukan table trans_sendQr
             $insSendQr = [

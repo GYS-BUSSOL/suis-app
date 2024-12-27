@@ -27,8 +27,13 @@ export async function fetchPartnerApproval(currentPage, rowPerPage, rowSearch) {
       },
       {
         "name": "status",
-        "logic_operator": "=",
-        "value": "0"
+        "logic_operator": "!=",
+        "value": 1
+      },
+      {
+        "name": "status",
+        "logic_operator": "!=",
+        "value": 2
       },
       ],
       "group_column": {
@@ -36,12 +41,7 @@ export async function fetchPartnerApproval(currentPage, rowPerPage, rowSearch) {
         "group_operator": "OR",
         "where": [
           {
-            "name": "id",
-            "logic_operator": "like",
-            "value": rowSearch
-          },
-          {
-            "name": "aplication_name",
+            "name": "purpose",
             "logic_operator": "like",
             "value": rowSearch
           },

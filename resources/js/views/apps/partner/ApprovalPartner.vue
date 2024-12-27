@@ -1,4 +1,7 @@
 <script setup>
+import PartnerApprovalDialog from '@/components/partner/PartnerApprovalDialog.vue'
+import PopupImage from '@/components/popup/PopupImage.vue'
+
 
 const emit = defineEmits(['updateTotalNotActive','updateTotalActive'])
 // Store
@@ -10,7 +13,8 @@ const sortBy = ref()
 const orderBy = ref()
 const selectedRows = ref([])
 const isPartnerDialogVisible = ref(false)
-const isPartnerTypeDialog = ref('Add')
+const isPopupVisible = ref(false)
+const isPartnerTypeDialog = ref('Approve')
 const IDPartner = ref(0)
 const isSnackbarResponse = ref(false)
 const isSnackbarResponseAlertColor = ref('error')
@@ -26,12 +30,22 @@ const errors = ref({
   exp_date: undefined
 
 })
+
+const image = ref('')
+const name = ref('')
+
+const openPopup = async ({ imagePopup, namePopup }) => {
+  isPopupVisible.value = true
+  image.value = "/storage/Photo/"+imagePopup
+  name.value = namePopup
+}
+
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
 }
 
-const openDialog = async ({ id = null, type }) => {
+const openDialog = async ({ id, type }) => {
   isPartnerTypeDialog.value = type
   isPartnerDialogVisible.value = true
   IDPartner.value = id
@@ -50,22 +64,38 @@ const {
   },
 }))
 
-const approvePartner = async id => {
+const approvalPartner = async id => {
   try {
-    isPartnerTypeDialog.value = 'Approve'
     const idPartner = Number(id);
-    const response = await $api(`/apps/partner/approve/${idPartner}`, {
-        method: 'PUT',
-        onResponseError({ response }) {
-        alertErrorResponse()
-        const responseData = response._data;
-        const responseMessage = responseData.message;
-        const responseErrors = responseData.errors;
-        errors.value = responseErrors;
-        errorMessages.value = responseMessage;
-        throw new Error("Deleted data failed");
-      },
-    })
+    let response
+    const type = isPartnerTypeDialog.value
+    if (type === 'Approve') {
+      response = await $api(`/apps/partner/approval/approve/${idPartner}`, {
+          method: 'PUT',
+          onResponseError({ response }) {
+          alertErrorResponse()
+          const responseData = response._data;
+          const responseMessage = responseData.message;
+          const responseErrors = responseData.errors;
+          errors.value = responseErrors;
+          errorMessages.value = responseMessage;
+          throw new Error("Deleted data failed");
+        },
+      })
+    } else if (type === 'Reject') {      
+      response = await $api(`/apps/partner/approval/reject/${idPartner}`, {
+          method: 'PUT',
+          onResponseError({ response }) {
+          alertErrorResponse()
+          const responseData = response._data;
+          const responseMessage = responseData.message;
+          const responseErrors = responseData.errors;
+          errors.value = responseErrors;
+          errorMessages.value = responseMessage;
+          throw new Error("Deleted data failed");
+        },
+      })
+    }
     const responseStringify = JSON.stringify(response);
     const responseParse = JSON.parse(responseStringify);
 
@@ -230,7 +260,7 @@ const headers = [
                 </div>
             </template>
             <template v-else>
-                <button class="btn" >
+                <button class="btn" @click="openPopup({imagePopup: item.visitor_photo, namePopup: item.visitor_name})" >
                     <img :src="`/storage/Photo/${item.visitor_photo}`" width="100px" class="img img-responsive mt-2" alt="">
                 </button>
             </template>
@@ -239,13 +269,13 @@ const headers = [
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="openDialog({id: item.partner_id, type: 'Approve'})">
+          <IconBtn @click="openDialog({id: item.id, type: 'Approve'})">
             <VIcon icon="tabler-check" color="success" />
             <VTooltip open-delay="200" location="top" activator="parent">
               <span>Approve</span>
             </VTooltip>
           </IconBtn>
-          <IconBtn @click="openDialog({id: item.partner_id, type: 'Reject'})">
+          <IconBtn @click="openDialog({id: item.id, type: 'Reject'})">
             <VIcon icon="tabler-x" color="error" />
             <VTooltip open-delay="200" location="top" activator="parent">
               <span>Reject</span>
@@ -266,17 +296,17 @@ const headers = [
       <!-- SECTION -->
     </VCard>
   </section>
-  <PartnerAddDialog
+    <PopupImage
+    v-model:isDialogVisible="isPopupVisible"
+    :image="image"
+    :name="name"
+    />
+  <PartnerApprovalDialog
     v-model:isDialogVisible="isPartnerDialogVisible"
-    :errors="errors"
     :typeDialog="isPartnerTypeDialog"
-    :Partner-id="IDPartner"
+    :partner-id="IDPartner"
     :fetch-trigger="fetchTrigger"
-    @isSnackbarResponseAlertColor="updateSnackbarResponseAlertColor"
-    @isSnackbarResponse="updateSnackbarResponse"
-    @PartnerData="handleFormSubmit"
-    @errorMessages="updateErrorMessages"
-    @errors="updateErrors"
+    @id-approval="approvalPartner"
   />
   <VSnackbar
     v-model="isSnackbarResponse"

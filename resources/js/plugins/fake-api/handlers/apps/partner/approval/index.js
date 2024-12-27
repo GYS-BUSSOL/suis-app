@@ -23,7 +23,6 @@ export const handlerAppsPartnerApproval = [
       // Fetch Data
       const fetchData = await fetchPartnerApproval(page, itemsPerPage, queryLower);
       const dataRows = fetchData.data.rows;
-      console.log(dataRows)
       // Filter Signature Type
       let filteredPartner = dataRows.filter(partner => (
         (
@@ -47,7 +46,6 @@ export const handlerAppsPartnerApproval = [
       const totalPartner = fetchData.data.total_record
       // Total pages
       const totalPages = Math.ceil(totalPartner / itemsPerPageLocal)
-      console.log("filtered: ",filteredPartner)
       
       return HttpResponse.json({
         partner: filteredPartner,

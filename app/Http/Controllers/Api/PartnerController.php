@@ -133,7 +133,6 @@ class PartnerController extends Controller
             $batas = str_pad($kode, 4, "0", STR_PAD_LEFT);
             // Gabungkan prefix dan nomor untuk menghasilkan kode QR
             $kodeqr = $prefix . $batas;
-            $qrImage = $kodeqr . '.png';
 
             $visitorPhoto = "visitor_" . $kodeqr;
 

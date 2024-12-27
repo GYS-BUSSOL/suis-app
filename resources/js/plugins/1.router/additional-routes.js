@@ -18,9 +18,9 @@ export const redirects = [
       if (userRole === 'approvalpartner')
         return { name: 'apps-barcode-partner-approval' }
       if (userRole === 'proc')
-        return { name: 'access-control' }
+        return { name: 'apps-barcode-procurement' }
       if (userRole === 'ga')
-        return { name: 'access-control' }
+        return { name: 'apps-barcode-security' }
       return { name: 'login', query: to.query }
     },
   },

@@ -236,7 +236,6 @@ const onSubmit = async () => {
                           label="Select Start Date*"
                           v-model="partnerData.duration"
                           placeholder="Select start date"
-                          
                           :rules="[requiredValidator]"
                           :error-messages="props.errors?.duration"
                           clearable

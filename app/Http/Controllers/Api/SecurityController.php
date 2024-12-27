@@ -38,7 +38,7 @@ class SecurityController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Successfully retrieved signature type data',
+                'message' => 'Successfully retrieved security data',
                 'data' => [
                     'rows' => $dataGet,
                     'total_data' => $totalShowData,
@@ -48,7 +48,7 @@ class SecurityController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
-                'message' => 'Failed to retrieve signature type data',
+                'message' => 'Failed to retrieve security data',
                 'data' => [
                     'rows' => [],
                     'total_record' => $dataBuilder,
@@ -69,7 +69,7 @@ class SecurityController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Successfully retrieved Access Level Procurement data',
+                'message' => 'Successfully retrieved Access Level Security data',
                 'data' => [
                     'rows' => $dataGet,
                     'total_record' => $totalRecord
@@ -78,7 +78,7 @@ class SecurityController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
-                'message' => 'Failed to retrieve Access Level Procurement data',
+                'message' => 'Failed to retrieve Access Level Security data',
                 'data' => [
                     'rows' => [],
                     'total_record' => 0
@@ -145,10 +145,14 @@ class SecurityController extends Controller
             }
 
             if ($duration) {
-                $duration = trim($duration, '"');
-                list($start_date, $exp_date) = explode(' to ', $duration);
-                $start_date = Carbon::createFromFormat('Y-m-d', $start_date)->format('Y-m-d');
-                $exp_date = Carbon::createFromFormat('Y-m-d', $exp_date)->format('Y-m-d');
+                if ($validated['non_exp'] == 'false') {
+                    $duration = trim($duration, '"');
+                    list($start_date, $exp_date) = explode(' to ', $duration);
+                    $start_date = Carbon::createFromFormat('Y-m-d', $start_date)->format('Y-m-d');
+                    $exp_date = Carbon::createFromFormat('Y-m-d', $exp_date)->format('Y-m-d');
+                } else if ($validated['non_exp'] == 'true') {
+                    $start_date = Carbon::createFromFormat('Y-m-d', $duration)->format('Y-m-d');
+                }
             }
             // data yang dimasukan table trans_sendQr
             $insSendQr = [
@@ -214,13 +218,13 @@ class SecurityController extends Controller
             }
             return response()->json([
                 'status' => 200,
-                'message' => 'Procurement Barcode created successfully'
+                'message' => 'Security Barcode created successfully'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
                 'error' => 'Server error',
-                'message' => 'Procurement Barcode failed to create' . $e->getMessage(),
+                'message' => 'Security Barcode failed to create' . $e->getMessage(),
             ], 500);
         }
     }

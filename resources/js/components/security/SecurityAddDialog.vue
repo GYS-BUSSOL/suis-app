@@ -215,11 +215,19 @@ const onSubmit = async () => {
                         <small v-else >Access will not be expired</small>
                       </VCol>
                       <VCol>
-                        <AppDateTimePicker
-                          label="Barcode Expired Duration*"
+                        <AppDateTimePicker v-if="securityData.non_exp == false"
+                          label="Select Start and End Date*"
                           v-model="securityData.duration"
                           placeholder="Select range date"
                           :config="{ mode: 'range' }"
+                          :rules="[requiredValidator]"
+                          :error-messages="props.errors?.duration"
+                          clearable
+                        />
+                        <AppDateTimePicker v-else
+                          label="Select Start Date*"
+                          v-model="securityData.duration"
+                          placeholder="Select start date"
                           :rules="[requiredValidator]"
                           :error-messages="props.errors?.duration"
                           clearable

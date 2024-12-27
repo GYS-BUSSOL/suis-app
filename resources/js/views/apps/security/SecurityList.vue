@@ -1,5 +1,5 @@
 <script setup>
-
+import PopupImage from '@/components/popup/PopupImage.vue'
 const emit = defineEmits(['updateTotalNotActive','updateTotalActive'])
 // Store
 const searchQuery = ref('')
@@ -10,7 +10,7 @@ const sortBy = ref()
 const orderBy = ref()
 const selectedRows = ref([])
 const isSecurityDialogVisible = ref(false)
-const isSecurityDialogDeleteVisible = ref(false)
+const isPopupVisible = ref(false)
 const isSecurityTypeDialog = ref('Add')
 const IDSecurity = ref(0)
 const isSnackbarResponse = ref(false)
@@ -20,6 +20,12 @@ const errorMessages = ref('Internal server error')
 const successMessages = ref('Successfully')
 const errors = ref({
   application_name: undefined,
+  visitor_name: undefined,
+  visitor_photo: undefined,
+  purpose: undefined,
+  non_exp: undefined,
+  duration: undefined,
+  acc_level: undefined
 })
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -49,6 +55,15 @@ const openDialog = async ({ id = null, type }) => {
   if(type == 'Edit')
     IDSecurity.value = id
     fetchTrigger.value += 1;
+}
+
+const image = ref('')
+const name = ref('')
+
+const openPopup = async ({ imagePopup, namePopup }) => {
+  isPopupVisible.value = true
+  image.value = "/storage/barcode/"+imagePopup
+  name.value = namePopup
 }
 
 const updateSnackbarResponse = res => {
@@ -241,6 +256,7 @@ const headers = [
         show-select
         @update:options="updateOptions"
       >
+
         <!-- No -->
         <template #item.no="{ index }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
@@ -252,17 +268,31 @@ const headers = [
         <template #item.barcode="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             <template v-if="item.status == 1 && item.aplication_name == 'Security Information System'">
-                <button class="btn" >
-                      <img :src="`/storage/barcode/${item.qr_image}`" width="100px" class="img img-responsive mt-2" alt="">
-                    <br>
-                    {{ item.visitor_name }}
-                  </button>
+                <button class="btn" @click="openPopup({imagePopup: item.qr_image, namePopup: item.visitor_name})" >
+                  <img :src="`/storage/barcode/${item.qr_image}`" width="100px" class="img img-responsive mt-2" alt="">
+                  <br>
+                  {{ item.visitor_name }}
+                </button>
                 </template>
                 <template v-else-if="item.status == 0 && item.aplication_name == 'Security Information System'">
-                  <label class="badge bg-warning px-3 py-2 rounded">Pending Aproval</label>
+                  <VChip
+                    color="warning"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  Pending Approval
+                  </VChip>
                 </template>
                 <template v-else-if="item.status == 2 && item.aplication_name == 'Security Information System'">
-                  <label class="badge bg-danger px-3 py-2 rounded">Rejected</label>
+                  <VChip
+                    color="error"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  Rejected
+                  </VChip>
                 </template>
                 <template v-else>
                   {{ item.aplication_name }}
@@ -274,18 +304,37 @@ const headers = [
         <template #item.download_barcode="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             <template v-if="item.status == 1 && item.aplication_name == 'Security Information System'">
-              <button class="btn bg-info px-3 py-2 rounded text-center">
-                    <a :href="`/storage/card/${item.barcode}`" class="text-white text-decoration-none" download>
-                      <VIcon icon="tabler-download" />
-                      Download Barcode
-                    </a>
-                  </button>
+                <VChip
+                    color="info"
+                    size="small"
+                    icon="tabler-download"
+                    label
+                    class="text-capitalize"
+                  >
+                  <a :href="`/storage/card/${item.barcode}`" class="text-white text-decoration-none" download>
+                    Download Barcode
+                  </a>
+                  </VChip>
                 </template>
                 <template v-else-if="item.status == 0 && item.aplication_name == 'Security Information System'">
-                  <label class="badge bg-warning px-3 py-2 rounded">Pending Aproval</label>
+                  <VChip
+                    color="warning"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  Pending Approval
+                  </VChip>
                 </template>
                 <template v-else-if="item.status == 2 && item.aplication_name == 'Security Information System'">
-                  <label class="badge bg-danger px-3 py-2 rounded">Rejected</label>
+                  <VChip
+                    color="error"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  Rejected
+                  </VChip>
                 </template>
                 <template v-else>
                   {{ item.aplication_name }}
@@ -298,19 +347,54 @@ const headers = [
         <template #item.status="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             <template v-if="item.status == 0 && item.aplication_name == 'Security Information System'">
-              <label class="badge bg-warning px-3 py-2 rounded">Pending</label>
+              <VChip
+                    color="warning"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  Pending
+                  </VChip>
                 </template>
                 <template v-else-if="item.status == 1 && item.aplication_name == 'Security Information System'">
-                  <label class="badge bg-success px-3 py-2 rounded">Approved</label>
+                  <VChip
+                    color="success"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  Approved
+                  </VChip>
                 </template>
                 <template v-else-if="item.status == 2 && item.aplication_name == 'Security Information System'">
-                  <label class="badge bg-danger px-3 py-2 rounded">Rejected</label>
+                  <VChip
+                    color="error"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  Rejected
+                  </VChip>
                 </template>
                 <template v-else-if="item.del == 1 && item.aplication_name == 'Security Information System'">
-                  <label class="badge bg-dark px-3 py-2 rounded">Deleted</label>
+                  <VChip
+                    color="secondary"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  Deleted
+                  </VChip>
                 </template>
                 <template v-else>
-                  <label class="badge bg-info px-3 py-2 rounded">{{ item.aplication_name }}</label>
+                  <VChip
+                    color="info"
+                    size="small"
+                    label
+                    class="text-capitalize"
+                  >
+                  {{ item.aplication_name }}
+                  </VChip>
                 </template>
           </div>
         </template>
@@ -327,17 +411,10 @@ const headers = [
       <!-- SECTION -->
     </VCard>
   </section>
-  <SecurityBarcodeDialog
-    v-model:isDialogVisible="isSecurityDialogVisible"
-    :errors="errors"
-    :typeDialog="isSecurityTypeDialog"
-    :Security-id="IDSecurity"
-    :fetch-trigger="fetchTrigger"
-    @isSnackbarResponseAlertColor="updateSnackbarResponseAlertColor"
-    @isSnackbarResponse="updateSnackbarResponse"
-    @SecurityData="handleFormSubmit"
-    @errorMessages="updateErrorMessages"
-    @errors="updateErrors"
+  <PopupImage
+  v-model:isDialogVisible="isPopupVisible"
+  :image="image"
+  :name="name"
   />
   <SecurityAddDialog
     v-model:isDialogVisible="isSecurityDialogVisible"
