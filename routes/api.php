@@ -19,6 +19,7 @@ Route::middleware(['guest', 'throttle:60,1'])->group(function () {
   // Authenticate
   Route::controller(AuthController::class)->group(function () {
     Route::post('/auth/login', 'login');
+    Route::get('reload-captcha', 'reloadCaptcha');
   });
 });
 

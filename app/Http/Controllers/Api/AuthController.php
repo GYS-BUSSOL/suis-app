@@ -24,14 +24,22 @@ class AuthController extends Controller
      * @param  \App\Http\Requests\Auth\LoginRequest  $request
      * @return \Illuminate\Http\Response
      */
+
+    //Captcha
+    public function reloadCaptcha()
+    {
+        return response()->json(['captcha' => captcha_img()]);
+    }
+     
     public function login(Request $request)
     {
         try {
             $data = [
                 'username' => ['required', 'string'],
-                'password' => ['required', 'string']
+                'password' => ['required', 'string'],
+                'captcha'  => ['required', 'captcha']
             ];
-
+            
             $validated = $this->handleValidationException($request, $data);
             if ($validated instanceof JsonResponse) {
                 return $validated;

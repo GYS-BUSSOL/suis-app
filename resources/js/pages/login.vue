@@ -19,15 +19,30 @@ const ability = useAbility()
 const credentials = ref({
   username: '',
   password: '',
+  captcha: '',
   remember: false,
 })
 const refVForm = ref()
+const captchaImage = ref('')
 const isPasswordVisible = ref(false)
 const errors = ref({
   username: undefined,
   password: undefined,
 })
 const loadingBtn = ref([])
+
+const reloadCaptcha = async () => {
+  try {
+    const response = await $api(`/reload-captcha`, {
+      method: 'GET',
+    });
+    const rows = response
+    console.log(rows)
+    
+  } catch (error) {
+    console.error('Error load captcha');
+  }
+}
 
 const login = async () => {
   try {
@@ -37,6 +52,7 @@ const login = async () => {
       body: {
         username: credentials.value.username,
         password: credentials.value.password,
+        captcha: credentials.value.captcha,
       },
       onResponseError({ response }) {
         loadingBtn.value[0] = false
@@ -67,6 +83,7 @@ const onSubmit = () => {
       login()
   })
 }
+
 </script>
 
 <template>
@@ -142,6 +159,21 @@ const onSubmit = () => {
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
+              <div v-html="captchaImage" class="captcha-image"></div>
+              <button @click="reloadCaptcha">Reload</button>
+              
+              <!-- captcha -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="credentials.captcha"
+                  placeholder="Captcha"
+                  autofocus
+                  label="Captcha"
+                  type="text"
+                  :rules="[requiredValidator]"
+                  :error-messages="errors.captcha"
+                />
+              </VCol>
 
                 <!-- remember me checkbox -->
                 <div class="d-flex align-center justify-space-between flex-wrap my-6">
