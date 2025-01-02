@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\{Request, JsonResponse};
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Mews\Captcha\Facades\Captcha;
+use Illuminate\Support\Facades\File;
 
 class AuthController extends Controller
 {
@@ -28,16 +31,32 @@ class AuthController extends Controller
     //Captcha
     public function reloadCaptcha()
     {
-        return response()->json(['captcha' => captcha_img()]);
+        $captcha = Captcha::create('default', true);
+        $img = $captcha['img'];
+        $key = $captcha['key'];
+        Cache::put('captcha_key', $key);
+        return response()->json([
+            'captcha' => $img
+        ]);
     }
      
     public function login(Request $request)
     {
         try {
+            $key = Cache::get('captcha_key');
+            $capt = Captcha::check_api(request('captcha'), $key);
+
+            if (!$capt) {
+                return response()->json([
+                    'status' => 400,
+                    'errors' => 'Unauthorized',
+                    'message' => 'Login failed, captcha Invalid'
+                ], 400);
+            }
+
             $data = [
                 'username' => ['required', 'string'],
                 'password' => ['required', 'string'],
-                'captcha'  => ['required', 'captcha']
             ];
             
             $validated = $this->handleValidationException($request, $data);

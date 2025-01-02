@@ -1,4 +1,5 @@
 <script setup>
+import { $api } from '@/utils/api';
 import authV1BottomShape from '@images/svg/auth-v1-bottom-shape.svg?raw';
 import authV1TopShape from '@images/svg/auth-v1-top-shape.svg?raw';
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer';
@@ -23,26 +24,37 @@ const credentials = ref({
   remember: false,
 })
 const refVForm = ref()
-const captchaImage = ref('')
 const isPasswordVisible = ref(false)
 const errors = ref({
   username: undefined,
   password: undefined,
+  captcha: undefined
 })
+const errorMessages = ref('Internal server error')
+const isSnackbarResponse = ref(false)
 const loadingBtn = ref([])
 
-const reloadCaptcha = async () => {
+const captchaImage = ref('')
+const captchaKey = ref('')
+const fetchCaptcha = async () => {
   try {
-    const response = await $api(`/reload-captcha`, {
+    const response = await $api('/captcha', { 
       method: 'GET',
     });
-    const rows = response
-    console.log(rows)
     
+    // Tambahkan pengecekan response
+    if (response) {
+      captchaImage.value = response.captcha;
+    } else {
+      console.error('Invalid captcha response:', response);
+    }
   } catch (error) {
-    console.error('Error load captcha');
+    console.error('Error loading captcha:', error);
   }
-}
+};
+onMounted(() => {
+  fetchCaptcha();
+});
 
 const login = async () => {
   try {
@@ -58,6 +70,8 @@ const login = async () => {
         loadingBtn.value[0] = false
         console.log(JSON.stringify(response));
         errors.value = response._data.errors
+        errorMessages.value = response._data.message
+        isSnackbarResponse.value = true;
       },
     });
     const { accessToken, userData, userAbilityRules, status } = res
@@ -107,6 +121,23 @@ const onSubmit = () => {
         max-width="460"
         :class="$vuetify.display.smAndUp ? 'pa-6' : 'pa-0'"
       >
+        <VSnackbar
+          v-model="isSnackbarResponse"
+          transition="scroll-y-reverse-transition"
+          location="top"
+          variant="flat"
+          color="error"
+        >
+          {{ errorMessages}}
+          <template #actions>
+            <VBtn
+              color="white"
+              @click="isSnackbarResponse = false"
+            >
+              Close
+            </VBtn>
+          </template>
+        </VSnackbar>
         <VCardItem class="justify-center">
           <VCardTitle>
             <RouterLink to="/login">
@@ -159,15 +190,34 @@ const onSubmit = () => {
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
-              <div v-html="captchaImage" class="captcha-image"></div>
-              <button @click="reloadCaptcha">Reload</button>
-              
+                </VCol>
+
+              <!-- CAPTCHA -->
+              <VCol cols="12" class="d-flex align-items-center justify-content-center">
+                <div class="captcha">
+                  <!-- Menampilkan gambar CAPTCHA -->
+                  <img :src="captchaImage" alt="captcha" />
+                </div>
+              </VCol>
+
+              <VCol cols="12" class="d-flex align-items-center justify-content-center">
+                <div class="captcha">
+                  <VBtn
+                    @click.prevent="fetchCaptcha"
+                  >
+                    <IconBtn>
+                      <VIcon icon="tabler-reload" />
+                    </IconBtn>
+                    Reload
+                  </VBtn>
+                </div>
+              </VCol>
+      
               <!-- captcha -->
               <VCol cols="12">
                 <AppTextField
                   v-model="credentials.captcha"
                   placeholder="Captcha"
-                  autofocus
                   label="Captcha"
                   type="text"
                   :rules="[requiredValidator]"
@@ -193,7 +243,6 @@ const onSubmit = () => {
                 >
                   Login
                 </VBtn>
-              </VCol>
             </VRow>
           </VForm>
         </VCardText>
@@ -204,4 +253,12 @@ const onSubmit = () => {
 
 <style lang="scss">
 @use "@core-scss/template/pages/page-auth";
+.captcha {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: auto;
+}
+
 </style>
