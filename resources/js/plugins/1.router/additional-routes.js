@@ -74,3 +74,8 @@ export const routes = [
     component: () => import('@/pages/dashboards/ecommerce.vue'),
   },
 ]
+
+const env = import.meta.env.VITE_ENV;
+const baseURLDEV = import.meta.env.VITE_API_BASE_URL_DEV;
+const baseURLPROD = import.meta.env.VITE_API_BASE_URL_PROD;
+export const BASE_API_URL = env === 'local' ? baseURLDEV : baseURLPROD;

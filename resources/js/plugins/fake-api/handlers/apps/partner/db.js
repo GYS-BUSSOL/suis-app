@@ -1,7 +1,9 @@
+import { BASE_API_URL } from "@/plugins/1.router/additional-routes";
+const token = useCookie('accessToken').value;
+
 export async function fetchPartner(currentPage, rowPerPage, rowSearch) {
     let start = 0;
-    const url = 'http://localhost:8000/api/apps/partner/search';
-    const token = 'YOUR_BEARER_TOKEN_HERE';
+    const url = `${BASE_API_URL}/api/apps/partner/search`;
     
     if(currentPage != 1 && currentPage > 1)
       start = (currentPage * rowPerPage) - rowPerPage
@@ -69,7 +71,7 @@ export async function fetchPartner(currentPage, rowPerPage, rowSearch) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });

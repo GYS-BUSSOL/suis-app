@@ -26,11 +26,8 @@ Route::middleware(['guest', 'throttle:60,1'])->group(function () {
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
   // Auth
   Route::post('/auth/logout', [AuthController::class, 'logout']);
-  Route::group(['prefix' => 'apps'], function () {});
-});
-
-Route::group(['prefix' => 'apps'], function () {
-  // Location
+  Route::group(['prefix' => 'apps'], function () {
+      // Location
   Route::controller(AdminController::class)->group(function () {
     Route::get('/location/list', 'list');
     Route::post('/location/search', 'search');
@@ -69,4 +66,9 @@ Route::group(['prefix' => 'apps'], function () {
     Route::put('/security/update/{id}', 'update');
     Route::delete('/security/delete/{id}', 'destroy');
   });
+  });
+});
+
+Route::group(['prefix' => 'apps'], function () {
+
 });
