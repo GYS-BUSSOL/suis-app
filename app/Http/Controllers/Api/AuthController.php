@@ -34,7 +34,7 @@ class AuthController extends Controller
         $captcha = Captcha::create('default', true);
         $img = $captcha['img'];
         $key = $captcha['key'];
-        Cache::put('captcha_key', $key);
+        Cache::put('captcha_key', $key, now()->addMinutes(1));
         return response()->json([
             'captcha' => $img
         ]);
@@ -43,23 +43,22 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
-            $key = Cache::get('captcha_key');
-            $capt = Captcha::check_api(request('captcha'), $key);
-
-            if (!$capt) {
-                return response()->json([
-                    'status' => 400,
-                    'errors' => 'Unauthorized',
-                    'message' => 'Login failed, captcha Invalid'
-                ], 400);
-            }
-
             $data = [
                 'username' => ['required', 'string'],
                 'password' => ['required', 'string'],
+                'captcha'  => ['required', 'string']
             ];
             
             $validated = $this->handleValidationException($request, $data);
+            $key = Cache::get('captcha_key');
+            if (!captcha_api_check($validated['captcha'], $key)) {
+                return response()->json([
+                    'status' => 400,
+                    'errors' => 'Failed captcha',
+                    'message' => 'Captcha is incorrect'
+                ], 400);
+            }
+
             if ($validated instanceof JsonResponse) {
                 return $validated;
             }
